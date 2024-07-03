@@ -67,18 +67,14 @@ class $modify(MyLevelCell, LevelCell) {
 		}
 		std::string URL = fmt::format("https://raw.githubusercontent.com/cdc-sys/level-thumbnails/main/thumbs/{}.png",(int)this->m_level->m_levelID);
 
-		auto downloadProgressText = CCLabelBMFont::create("0%","bigFont.fnt");
-		downloadProgressText->setPosition({50,50});
-		this->addChild(downloadProgressText);
-
 		auto req = web::WebRequest();
-		m_fields->downloadListener.bind([this,downloadProgressText](web::WebTask::Event* e){
+
+		m_fields->downloadListener.bind([this](web::WebTask::Event* e){
 			if (auto res = e->getValue()){
 				if (!res->ok()) {
 					this->onDownloadFailed();
 					this->m_fields->fetchFailed = true;
 				} else {
-					downloadProgressText->removeFromParent();
 					auto data = res->data();
 					std::thread imageThread = std::thread([data,this](){
 						auto image = Ref(new CCImage());
@@ -96,7 +92,6 @@ class $modify(MyLevelCell, LevelCell) {
 					return;
 				}
 				geode::log::info("{}",e->getProgress()->downloadProgress());
-				downloadProgressText->setString(fmt::format("{}%",round(e->getProgress()->downloadProgress().value())).c_str());
 			}
 		});
 		auto downloadTask = req.get(URL);
